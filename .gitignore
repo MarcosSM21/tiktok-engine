@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 .env
 output/
+.~lock.ideas_tiktok_generator.odt#
+ideas_tiktok_generator.odt
