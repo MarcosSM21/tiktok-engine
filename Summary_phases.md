@@ -120,3 +120,33 @@ Generar varios videos automaticos en una sola ejecucion hasta alcanzar el primer
 
 ### Estado al cierre
 La Fase 4 queda completada con un generador por lotes capaz de producir 10 videos automaticos en una sola ejecucion. Con esto se alcanza el primer hito funcional del MVP.
+
+## Fase 5: Presets Externos en JSON
+
+### Objetivo
+Sacar hooks, paletas, tamanos de cuadricula y otros valores configurables de `src/main.py` para controlarlos desde archivos JSON sin tocar codigo.
+
+### Hecho en esta fase
+- Se definieron los datos configurables que pasan a vivir fuera del codigo.
+- Se creo el archivo `data/presets/find_difference.json`.
+- Se movieron hooks, tamanos de cuadricula, numeros disponibles, paletas, medidas y cantidad de videos al JSON.
+- Se anadio carga de presets desde `src/main.py`.
+- Se adapto la generacion aleatoria para usar los datos cargados desde JSON.
+- Se convirtieron los colores del JSON a tuplas antes de usarlos con Pillow.
+- Se dejo `main.py` como orquestador del lote y no como archivo de presets creativos.
+
+### Decisiones tomadas
+- Se usa JSON como primera fuente externa por ser simple, editable y suficiente para el MVP.
+- El preset vive en `data/presets/find_difference.json`.
+- La cantidad de videos por lote se controla desde el JSON.
+- La configuracion del timeline y del layout interno se mantiene todavia en codigo para no abrir demasiados frentes.
+
+### Limites actuales
+- Solo existe un preset para el formato "Encuentra el elemento diferente".
+- No hay validacion formal del JSON.
+- No hay argumentos de terminal para elegir otro preset.
+- Los textos finales y tiempos del video aun no estan externalizados.
+- La logica de configuracion aleatoria sigue dentro de `main.py`.
+
+### Estado al cierre
+La Fase 5 queda completada con presets externos en JSON. El sistema ya permite ajustar contenido y parametros principales del lote sin modificar directamente la logica del programa.
