@@ -41,6 +41,9 @@ def generate_random_config(video_number, presets):
         "accent_color": accent_color,
         "output_path": f"output/images/find_difference_{video_number:02d}_{timestamp}_{unique_id}.png",
         "video_output_path": f"output/videos/find_difference_{video_number:02d}_{timestamp}_{unique_id}.mp4",
+        "background_music_path": presets.get("background_music_path"),
+        "background_music_volume": presets.get("background_music_volume", 0.25),
+        "background_music_start": presets.get("background_music_start", 0),
     }
 
 def main():

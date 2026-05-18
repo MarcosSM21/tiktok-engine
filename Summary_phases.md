@@ -183,3 +183,35 @@ Mejorar la calidad visual del formato "Encuentra el elemento diferente" sin camb
 
 ### Estado al cierre
 La Fase 6 queda completada con una version visualmente mas clara y controlada del primer formato. El video mantiene la simplicidad del MVP, pero ya se percibe mas cuidado y menos plano.
+
+## Fase 7: Audio Base y Efectos Simples
+
+### Objetivo
+Anadir audio basico a los videos para que se perciban mas completos, empezando con musica de fondo opcional sin incorporar todavia TTS ni mezcla compleja.
+
+### Hecho en esta fase
+- Se creo una carpeta para assets de audio en `assets/audio/`.
+- Se anadio un archivo de musica de fondo local.
+- Se incorporo la ruta del audio al preset JSON.
+- Se anadio control de volumen desde `background_music_volume`.
+- Se anadio control del punto de inicio desde `background_music_start`.
+- Se paso la configuracion de audio desde `main.py` al generador de video.
+- Se anadio soporte opcional de audio con `AudioFileClip`.
+- Se recorta la musica a la duracion exacta del video.
+- Se exporta el `.mp4` con codec de audio `aac`.
+
+### Decisiones tomadas
+- La musica de fondo es opcional: si no hay ruta o el archivo no existe, el video se genera sin audio.
+- Se usa un volumen bajo por defecto para dejar espacio a futura voz narrada.
+- El audio se controla desde JSON para evitar tocar codigo al cambiar musica o volumen.
+- Se deja TTS para una fase posterior.
+
+### Limites actuales
+- Solo hay una pista de musica de fondo.
+- No hay efectos sonoros sincronizados con contador o revelacion.
+- No hay fundido de entrada o salida.
+- No hay seleccion aleatoria entre varias canciones.
+- No hay voz narrada.
+
+### Estado al cierre
+La Fase 7 queda completada con soporte de musica de fondo opcional. El sistema ya puede generar videos con imagen, movimiento por escenas y audio en un unico `.mp4`.

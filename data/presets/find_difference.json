@@ -3,6 +3,9 @@
   "height": 1920,
   "videos_to_generate": 4,
   "hook_text": "Encuentra el numero diferente",
+  "background_music_path": "assets/audio/mfcc-comic-humor-memes-tiktok-music-357342.mp3",
+  "background_music_volume": 0.25,
+  "background_music_start": 0,
   "grid_sizes": [
     [8, 6],
     [9, 6],

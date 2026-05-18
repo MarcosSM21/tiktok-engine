@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 
 import numpy as np
-from moviepy import ImageClip, concatenate_videoclips
+from moviepy import AudioFileClip, ImageClip, concatenate_videoclips
 
 
 def load_font(size):
@@ -427,7 +427,32 @@ def generate_find_difference_reveal_image(config):
 
     print(f"Imagen de revelacion generada en: {output_path}")
 
+def add_background_music(video, config):
+    music_path = config.get("background_music_path")
 
+    if not music_path:
+        return video
+
+    music_file = Path(music_path)
+
+    if not music_file.exists():
+        print(f"Audio no encontrado, se genera video sin musica: {music_path}")
+        return video
+
+    volume = config.get("background_music_volume", 0.25)
+    start = config.get("background_music_start", 0)
+    end = start + video.duration
+
+    audio = AudioFileClip(str(music_file))
+
+    if end > audio.duration:
+        start = 0
+        end = video.duration
+
+    audio = audio.subclipped(start, end)
+    audio = audio.with_volume_scaled(volume)
+
+    return video.with_audio(audio)
 
 ## VÍDEOS 
 
@@ -462,11 +487,12 @@ def generate_find_difference_video(config):
     ]
 
     video = concatenate_videoclips(clips)
+    video = add_background_music(video, config)
     video.write_videofile(
         output_path,
         fps=24,
         codec="libx264",
-        audio=False,
+        audio_codec="aac",
     )
 
     print(f"Video generado en: {output_path}")
