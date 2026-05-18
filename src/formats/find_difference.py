@@ -2,8 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 
 import numpy as np
-from moviepy import AudioFileClip, ImageClip, concatenate_videoclips
-
+from moviepy import AudioFileClip, CompositeAudioClip, ImageClip, concatenate_videoclips
 
 def load_font(size):
     try:
@@ -427,32 +426,48 @@ def generate_find_difference_reveal_image(config):
 
     print(f"Imagen de revelacion generada en: {output_path}")
 
-def add_background_music(video, config):
+def build_audio_track(video, config):
+    audio_clips = []
+
     music_path = config.get("background_music_path")
+    if music_path:
+        music_file = Path(music_path)
 
-    if not music_path:
+        if music_file.exists():
+            music_volume = config.get("background_music_volume", 0.25)
+            music_start = config.get("background_music_start", 0)
+            music_end = music_start + video.duration
+
+            music = AudioFileClip(str(music_file))
+
+            if music_end > music.duration:
+                music_start = 0
+                music_end = video.duration
+
+            music = music.subclipped(music_start, music_end)
+            music = music.with_volume_scaled(music_volume)
+            audio_clips.append(music)
+        else:
+            print(f"Musica no encontrada, se omite: {music_path}")
+
+    voiceover_path = config.get("voiceover_path")
+    if voiceover_path:
+        voiceover_file = Path(voiceover_path)
+
+        if voiceover_file.exists():
+            voiceover_volume = config.get("voiceover_volume", 1.0)
+
+            voiceover = AudioFileClip(str(voiceover_file))
+            voiceover = voiceover.subclipped(0, min(voiceover.duration, video.duration))
+            voiceover = voiceover.with_volume_scaled(voiceover_volume)
+            audio_clips.append(voiceover)
+        else:
+            print(f"Voz no encontrada, se omite: {voiceover_path}")
+
+    if not audio_clips:
         return video
 
-    music_file = Path(music_path)
-
-    if not music_file.exists():
-        print(f"Audio no encontrado, se genera video sin musica: {music_path}")
-        return video
-
-    volume = config.get("background_music_volume", 0.25)
-    start = config.get("background_music_start", 0)
-    end = start + video.duration
-
-    audio = AudioFileClip(str(music_file))
-
-    if end > audio.duration:
-        start = 0
-        end = video.duration
-
-    audio = audio.subclipped(start, end)
-    audio = audio.with_volume_scaled(volume)
-
-    return video.with_audio(audio)
+    return video.with_audio(CompositeAudioClip(audio_clips))
 
 ## VÍDEOS 
 
@@ -487,7 +502,7 @@ def generate_find_difference_video(config):
     ]
 
     video = concatenate_videoclips(clips)
-    video = add_background_music(video, config)
+    video = build_audio_track(video, config)
     video.write_videofile(
         output_path,
         fps=24,

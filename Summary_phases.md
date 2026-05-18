@@ -215,3 +215,35 @@ Anadir audio basico a los videos para que se perciban mas completos, empezando c
 
 ### Estado al cierre
 La Fase 7 queda completada con soporte de musica de fondo opcional. El sistema ya puede generar videos con imagen, movimiento por escenas y audio en un unico `.mp4`.
+
+## Fase 8: Voz Pregrabada y Mezcla de Audio
+
+### Objetivo
+Anadir voz narrada al video usando audios pregrabados o generados fuera del sistema, evitando depender de APIs o TTS local de baja calidad.
+
+### Hecho en esta fase
+- Se descarto la generacion local con `pyttsx3` por baja calidad de voz.
+- Se elimino la generacion automatica de archivos de voz desde codigo.
+- Se preparo el preset JSON para recibir una ruta de voz pregrabada.
+- Se organizo el audio en carpetas separadas para musica y voces.
+- Se anadio soporte para cargar una voz existente desde `voiceover_path`.
+- Se anadio control de volumen de voz con `voiceover_volume`.
+- Se mezclo la voz pregrabada con la musica de fondo.
+- Se usa `CompositeAudioClip` para combinar varias pistas de audio.
+- Se mantiene la exportacion final en `.mp4` con audio `aac`.
+
+### Decisiones tomadas
+- La voz se crea fuera del sistema con herramientas especializadas de voces tipo TikTok.
+- El sistema no genera voces, solo consume audios ya existentes.
+- Se separa `assets/audio/music/` para musica y `assets/audio/voiceovers/` para voces.
+- La musica y la voz se controlan desde JSON para poder ajustar rutas y volumen sin tocar codigo.
+
+### Limites actuales
+- Solo se usa una voz pregrabada fija por preset.
+- No hay seleccion aleatoria entre varias voces.
+- No hay sincronizacion precisa entre voz y escenas.
+- No hay ducking automatico de musica cuando entra la voz.
+- No hay fades de entrada o salida.
+
+### Estado al cierre
+La Fase 8 queda completada con voz pregrabada mezclada con musica de fondo. El sistema ya puede producir videos con audio mas cercano a un formato de TikTok, manteniendo el control desde archivos locales y JSON.

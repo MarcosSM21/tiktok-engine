@@ -44,6 +44,8 @@ def generate_random_config(video_number, presets):
         "background_music_path": presets.get("background_music_path"),
         "background_music_volume": presets.get("background_music_volume", 0.25),
         "background_music_start": presets.get("background_music_start", 0),
+        "voiceover_path": presets.get("voiceover_path"),
+        "voiceover_volume": presets.get("voiceover_volume", 1.0),
     }
 
 def main():

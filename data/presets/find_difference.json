@@ -1,11 +1,12 @@
 {
   "width": 1080,
   "height": 1920,
-  "videos_to_generate": 4,
+  "videos_to_generate": 2,
   "hook_text": "Encuentra el numero diferente",
-  "background_music_path": "assets/audio/mfcc-comic-humor-memes-tiktok-music-357342.mp3",
-  "background_music_volume": 0.25,
+  "background_music_path": "assets/audio/music/mfcc-comic-humor-memes-tiktok-music-357342.mp3",  "background_music_volume": 0.25,
   "background_music_start": 0,
+  "voiceover_path": "assets/audio/voiceovers/find_difference/tiktokvoice.net-1779097824348.mp3",
+  "voiceover_volume": 1.0,
   "grid_sizes": [
     [8, 6],
     [9, 6],
