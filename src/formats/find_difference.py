@@ -10,6 +10,34 @@ def load_font(size):
         return ImageFont.truetype("DejaVuSans-Bold.ttf", size)
     except OSError:
         return ImageFont.load_default()
+    
+def clamp_color_value(value):
+    return max(0, min(255, value))
+
+
+def brighten_color(color, amount):
+    return tuple(clamp_color_value(channel + amount) for channel in color)
+
+def darken_color(color, amount):
+    return tuple(clamp_color_value(channel - amount) for channel in color)
+
+
+def create_vertical_gradient(width, height, start_color, end_color):
+    image = Image.new("RGB", (width, height))
+
+    for y in range(height):
+        ratio = y / max(height - 1, 1)
+
+        red = int(start_color[0] * (1 - ratio) + end_color[0] * ratio)
+        green = int(start_color[1] * (1 - ratio) + end_color[1] * ratio)
+        blue = int(start_color[2] * (1 - ratio) + end_color[2] * ratio)
+
+        ImageDraw.Draw(image).line(
+            [(0, y), (width, y)],
+            fill=(red, green, blue),
+        )
+
+    return image
 
 
 def wrap_text(draw, text, font, max_width):
@@ -35,18 +63,55 @@ def wrap_text(draw, text, font, max_width):
     return lines
 
 
-def draw_centered_multiline_text(draw, lines, font, fill, center_x, start_y, line_spacing):
-    y = start_y
+def get_multiline_text_size(draw, lines, font, line_gap):
+    if not lines:
+        return 0, 0
+
+    widths = []
+    heights = []
 
     for line in lines:
-        draw.text(
-            (center_x, y),
-            line,
-            fill=fill,
-            font=font,
-            anchor="ma",
-        )
-        y += line_spacing
+        bbox = draw.textbbox((0, 0), line, font=font)
+        widths.append(bbox[2] - bbox[0])
+        heights.append(bbox[3] - bbox[1])
+
+    total_height = sum(heights) + line_gap * (len(lines) - 1)
+
+    return max(widths), total_height
+
+
+def draw_centered_multiline_text_in_box(draw, lines, font, fill, box, line_gap):
+    text_width, text_height = get_multiline_text_size(draw, lines, font, line_gap)
+    box_left, box_top, box_right, box_bottom = box
+    box_width = box_right - box_left
+    box_height = box_bottom - box_top
+
+    current_y = box_top + ((box_height - text_height) / 2)
+
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        line_width = bbox[2] - bbox[0]
+        line_height = bbox[3] - bbox[1]
+        x = box_left + ((box_width - line_width) / 2) - bbox[0]
+        y = current_y - bbox[1]
+
+        draw.text((x, y), line, fill=fill, font=font)
+        current_y += line_height + line_gap
+
+
+def get_layout_bounds(config):
+    width = config["width"]
+    height = config["height"]
+
+    return {
+        "top_margin": 340,
+        "bottom_margin": 430,
+        "left_margin": 100,
+        "right_margin": 100,
+        "grid_panel_padding": 28,
+        "grid_bottom": height - 430,
+        "grid_right": width - 100,
+    }
 
 
 def build_find_difference_image(config):
@@ -60,37 +125,98 @@ def build_find_difference_image(config):
     rows = config["rows"]
     cols = config["cols"]
     answer_index = config["answer_index"]
+    accent_color = config["accent_color"]
 
 
-    image = Image.new("RGB", (width, height), background_color)
+    gradient_end_color = brighten_color(background_color, 35)
+    image = create_vertical_gradient(width, height, background_color, gradient_end_color)
     draw = ImageDraw.Draw(image)
 
-    hook_font = load_font(50)
-    grid_font = load_font(90)
+    hook_font = load_font(54)
+    grid_font = load_font(72)
 
-    top_margin = 360
-    bottom_margin = 180
-    left_margin = 100
-    right_margin = 100
+    layout = get_layout_bounds(config)
+    top_margin = layout["top_margin"]
+    bottom_margin = layout["bottom_margin"]
+    left_margin = layout["left_margin"]
+    right_margin = layout["right_margin"]
+    grid_panel_padding = layout["grid_panel_padding"]
+    grid_bottom = layout["grid_bottom"]
+    grid_right = layout["grid_right"]
 
-    hook_max_width = width - left_margin - right_margin
-    hook_lines = wrap_text(draw, hook_text, hook_font, hook_max_width)
+    hook_box = (
+        left_margin,
+        70,
+        width - right_margin,
+        230,
+    )
 
-    draw_centered_multiline_text(
+    hook_padding = 42
+    hook_inner_box = (
+        hook_box[0] + hook_padding,
+        hook_box[1] + hook_padding,
+        hook_box[2] - hook_padding,
+        hook_box[3] - hook_padding,
+    )
+    hook_inner_width = hook_inner_box[2] - hook_inner_box[0]
+    hook_lines = wrap_text(draw, hook_text, hook_font, hook_inner_width)
+    hook_line_gap = 10
+
+    draw.rounded_rectangle(
+        hook_box,
+        radius=28,
+        fill=(0, 0, 0),
+        outline=accent_color,
+        width=5,
+    )
+
+    draw_centered_multiline_text_in_box(
         draw=draw,
         lines=hook_lines,
         font=hook_font,
         fill=text_color,
-        center_x=width // 2,
-        start_y=100,
-        line_spacing=78,
+        box=hook_inner_box,
+        line_gap=hook_line_gap,
     )
 
     grid_width = width - left_margin - right_margin
-    grid_height = height - top_margin - bottom_margin
+    grid_height = grid_bottom - top_margin
 
     cell_width = grid_width / cols
     cell_height = grid_height / rows
+
+    grid_panel_box = (
+        left_margin - grid_panel_padding,
+        top_margin - grid_panel_padding,
+        grid_right + grid_panel_padding,
+        grid_bottom + grid_panel_padding,
+    )
+
+    draw.rounded_rectangle(
+        grid_panel_box,
+        radius=34,
+        fill=darken_color(background_color, 20),
+        outline=accent_color,
+        width=3,
+    )
+
+    grid_line_color = brighten_color(background_color, 55)
+
+    for col in range(1, cols):
+        x = left_margin + (col * cell_width)
+        draw.line(
+            [(x, top_margin), (x, grid_bottom)],
+            fill=grid_line_color,
+            width=2,
+        )
+
+    for row in range(1, rows):
+        y = top_margin + (row * cell_height)
+        draw.line(
+            [(left_margin, y), (grid_right, y)],
+            fill=grid_line_color,
+            width=2,
+        )
 
     for row in range(rows):
         for col in range(cols):
@@ -119,12 +245,27 @@ def add_countdown_to_image(image, config, seconds_left):
     height = config["height"]
     accent_color = config["accent_color"]
     background_color = config["background_color"]
+    text_color = config["text_color"]
 
-    countdown_font = load_font(86)
-
+    countdown_font = load_font(92)
     center_x = width // 2
-    center_y = height - 110
-    radius = 72
+    center_y = height - 255
+    radius = 82
+
+    box = (
+        340,
+        center_y - 112,
+        width - 340,
+        center_y + 112,
+    )
+
+    draw.rounded_rectangle(
+        box,
+        radius=36,
+        fill=darken_color(background_color, 25),
+        outline=accent_color,
+        width=4,
+    )
 
     draw.ellipse(
         (
@@ -134,6 +275,17 @@ def add_countdown_to_image(image, config, seconds_left):
             center_y + radius,
         ),
         fill=accent_color,
+    )
+
+    draw.ellipse(
+        (
+            center_x - radius + 10,
+            center_y - radius + 10,
+            center_x + radius - 10,
+            center_y + radius - 10,
+        ),
+        outline=text_color,
+        width=4,
     )
 
     draw.text(
@@ -148,18 +300,17 @@ def add_countdown_to_image(image, config, seconds_left):
 
 
 def get_grid_position(config, index):
-    width = config["width"]
-    height = config["height"]
     rows = config["rows"]
     cols = config["cols"]
 
-    top_margin = 360
-    bottom_margin = 180
-    left_margin = 100
-    right_margin = 100
+    layout = get_layout_bounds(config)
+    top_margin = layout["top_margin"]
+    left_margin = layout["left_margin"]
+    grid_right = layout["grid_right"]
+    grid_bottom = layout["grid_bottom"]
 
-    grid_width = width - left_margin - right_margin
-    grid_height = height - top_margin - bottom_margin
+    grid_width = grid_right - left_margin
+    grid_height = grid_bottom - top_margin
 
     cell_width = grid_width / cols
     cell_height = grid_height / rows
@@ -181,10 +332,35 @@ def add_reveal_to_image(image, config):
     answer_index = config["answer_index"]
     accent_color = config["accent_color"]
     text_color = config["text_color"]
+    background_color = config["background_color"]
 
     x, y, cell_width, cell_height = get_grid_position(config, answer_index)
 
-    radius = min(cell_width, cell_height) * 0.38
+    radius = min(cell_width, cell_height) * 0.46
+
+    glow_radius = radius + 18
+    draw.ellipse(
+        (
+            x - glow_radius,
+            y - glow_radius,
+            x + glow_radius,
+            y + glow_radius,
+        ),
+        outline=accent_color,
+        width=8,
+    )
+
+    inner_radius = radius + 5
+    draw.ellipse(
+        (
+            x - inner_radius,
+            y - inner_radius,
+            x + inner_radius,
+            y + inner_radius,
+        ),
+        outline=text_color,
+        width=6,
+    )
 
     draw.ellipse(
         (
@@ -194,14 +370,29 @@ def add_reveal_to_image(image, config):
             y + radius,
         ),
         outline=accent_color,
-        width=10,
+        width=14,
     )
 
     final_font = load_font(58)
     final_text = "Lo viste a tiempo?"
 
+    final_box = (
+        140,
+        height - 220,
+        width - 140,
+        height - 70,
+    )
+
+    draw.rounded_rectangle(
+        final_box,
+        radius=34,
+        fill=darken_color(background_color, 25),
+        outline=accent_color,
+        width=4,
+    )
+
     draw.text(
-        (width // 2, height - 120),
+        (width // 2, height - 145),
         final_text,
         fill=text_color,
         font=final_font,

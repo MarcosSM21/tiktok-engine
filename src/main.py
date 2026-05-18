@@ -30,7 +30,7 @@ def generate_random_config(video_number, presets):
     return {
         "width": presets["width"],
         "height": presets["height"],
-        "hook_text": random.choice(presets["hooks"]),
+        "hook_text": presets["hook_text"],
         "base_number": base_number,
         "odd_number": odd_number,
         "rows": rows,

@@ -150,3 +150,36 @@ Sacar hooks, paletas, tamanos de cuadricula y otros valores configurables de `sr
 
 ### Estado al cierre
 La Fase 5 queda completada con presets externos en JSON. El sistema ya permite ajustar contenido y parametros principales del lote sin modificar directamente la logica del programa.
+
+## Fase 6: Mejora Visual del Formato
+
+### Objetivo
+Mejorar la calidad visual del formato "Encuentra el elemento diferente" sin cambiar el motor base ni anadir dependencias complejas.
+
+### Hecho en esta fase
+- Se sustituyo el fondo plano por un gradiente vertical simple.
+- Se anadio un bloque visual para el hook superior.
+- Se fijo el hook principal para controlar mejor su composicion.
+- Se implemento padding real del texto dentro del bloque del hook.
+- Se mejoro la cuadrícula con panel, borde y lineas internas.
+- Se redujo el tamano de los numeros para mejorar la lectura del conjunto.
+- Se recoloco la cuadrícula mas arriba para dejar espacio al contador.
+- Se rediseño el contador y se elimino la palabra "segundos".
+- Se mejoro la revelacion para marcar la respuesta sin tapar el numero.
+- Se centralizaron medidas de layout para alinear reto y revelacion.
+
+### Decisiones tomadas
+- Se mantiene el render programatico con Pillow para conservar control total.
+- No se incorpora ComfyUI ni assets generados en esta fase.
+- El hook deja de variar temporalmente para asegurar una composicion consistente.
+- Se prioriza legibilidad y control visual por encima de maxima variacion.
+
+### Limites actuales
+- El estilo visual sigue siendo basico.
+- No hay animaciones suaves ni transiciones.
+- No hay musica, TTS ni efectos sonoros.
+- El layout aun esta definido en codigo.
+- Solo se ha mejorado el formato "Encuentra el elemento diferente".
+
+### Estado al cierre
+La Fase 6 queda completada con una version visualmente mas clara y controlada del primer formato. El video mantiene la simplicidad del MVP, pero ya se percibe mas cuidado y menos plano.
